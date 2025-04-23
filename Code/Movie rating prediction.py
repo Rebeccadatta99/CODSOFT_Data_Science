@@ -107,7 +107,7 @@ df['Year']=df['Year'].str.replace('(', '').str.replace(')', '').astype('int64')
 
 # ## Checking the data types of the columns
 
-# In[22]:
+# In[14]:
 
 
 df.info()
@@ -160,7 +160,12 @@ genre_dummies.columns = genre_dummies.columns.str.strip()
 
 
 df = pd.concat([df,genre_dummies],axis=1)
-df
+
+
+# In[22]:
+
+
+print(df.shape)
 
 
 # ## Droping the unwanted columns and prepare the Dataset to train the model
@@ -180,25 +185,91 @@ df['Actor 2_encoded'] = df.groupby('Actor 2')['Rating'].transform('mean')
 df['Actor 3_encoded'] = df.groupby('Actor 3')['Rating'].transform('mean')
 
 
-# ## Defining Features and Target
+# ## Distribution of IMDb Ratings
 
 # In[25]:
 
 
-X = df.drop(['Rating','Director','Actor 1','Actor 2','Actor 3'],axis=1)
-X
+fig = px.histogram(df, x='Rating', nbins=20, title='Distribution of IMDb Ratings',
+                   template = 'simple_white')
+fig.update_layout(title_x = 0.5,xaxis_title='Ratings', yaxis_title='')
+fig.show()
 
+
+# ## Votes vs Ratings
 
 # In[26]:
 
 
+fig1 = px.scatter(df, x = 'Votes', y = 'Rating', title= 'Votes vs IMDb Rating', template = 'simple_white')
+fig1.update_layout(title_x = 0.5, xaxis_title= 'Votes', yaxis_title = 'Ratings')
+fig1.show()
+
+
+# In[27]:
+
+
+Correlation = df[['Votes','Rating']]
+print("The correlation coefficient between votes and ratings:\n",Correlation.corr())
+
+
+# ## Top 10 Genre by Movie Count
+
+# In[28]:
+
+
+genre_cols = [col for col in df.columns if col not in ['Year', 'Rating','Votes', 'Director', 'Actor 1', 'Actor 2', 'Actor 3',
+                                                       'Duration(min)', 'Director_encoded', 'Actor 1_encoded', 'Actor 2_encoded', 'Actor 3_encoded' ]]
+genre_counts = df[genre_cols].sum().sort_values(ascending=False)
+genre_df = genre_counts.reset_index()
+genre_df.columns = ['Genre', 'Movie Count']
+
+
+# In[29]:
+
+
+genre_df.head(10)
+
+
+# In[29]:
+
+
+fig2 = px.bar(genre_df.head(10), x = 'Movie Count', y = 'Genre', orientation = 'h',
+              title = 'Top 10 Genre by movie count', template='simple_white')
+fig2.update_layout(title_x = 0.5, showlegend = False)
+fig2.show()
+
+
+# ## Movies Released Per Year (Trend)
+
+# In[30]:
+
+
+yearly_counts = df['Year'].value_counts().sort_index()
+fig3 = px.line(x=yearly_counts.index, y=yearly_counts.values, title='Number of Movies Released Per Year', template = 'simple_white')
+fig3.update_layout(title_x = 0.5, xaxis_title= 'Year', yaxis_title = 'No. of Movies released')
+fig3.show()
+
+
+# ## Defining Features and Target
+
+# In[31]:
+
+
+X = df.drop(['Rating','Director','Actor 1','Actor 2','Actor 3'],axis=1)
+X.head(5)
+
+
+# In[32]:
+
+
 y = df['Rating']
-y
+y.head()
 
 
 # ## Spliting the dataset into Train and Test data
 
-# In[27]:
+# In[33]:
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -206,7 +277,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 # ## Fitting the data into Linear Regression Model
 
-# In[28]:
+# In[34]:
 
 
 model = LinearRegression()
@@ -215,7 +286,7 @@ model.fit(X_train, y_train)
 
 # ## Prediction of Movie ratings
 
-# In[29]:
+# In[35]:
 
 
 y_pred = model.predict(X_test)
@@ -224,7 +295,7 @@ y_pred
 
 # ## Evaluating the Model
 
-# In[30]:
+# In[36]:
 
 
 mse = mean_squared_error(y_test, y_pred)
@@ -233,30 +304,30 @@ r2 = r2_score(y_test, y_pred)
 print("r2 score:\n",r2)
 
 
-# In[31]:
+# In[37]:
 
 
-fig = px.scatter(df,x = y_test, y = y_pred, 
+fig4 = px.scatter(df,x = y_test, y = y_pred, 
                  template = 'simple_white', title = 'Actual vs Predicted Ratings')
-fig.update_layout(title_x = 0.5, xaxis_title = 'Actual Rating',yaxis_title='Predicted Rating')
-fig.show()
+fig4.update_layout(title_x = 0.5, xaxis_title = 'Actual Rating',yaxis_title='Predicted Rating')
+fig4.show()
 
 
 # ## Testing the model with some sample data
 
-# In[32]:
+# In[38]:
 
 
 pd.set_option('display.max_columns', None)
 
 
-# In[33]:
+# In[39]:
 
 
 X.head(1)
 
 
-# In[36]:
+# In[40]:
 
 
 X_sample = pd.DataFrame([{'Year':2020,'Votes':20,'Duration(min)':120.0,'Action':1,'Adventure':1,'Animation':0,'Biography':0,'Comedy':0,
@@ -266,7 +337,7 @@ X_sample = pd.DataFrame([{'Year':2020,'Votes':20,'Duration(min)':120.0,'Action':
 X_sample
 
 
-# In[37]:
+# In[41]:
 
 
 y1_pred = model.predict(X_sample)

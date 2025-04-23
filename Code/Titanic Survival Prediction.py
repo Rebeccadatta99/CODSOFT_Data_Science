@@ -66,16 +66,26 @@ fig1.show()
 # In[8]:
 
 
-fig2 = px.bar(df,x = 'Survived',y = 'Pclass',color= 'Sex',barmode='group',orientation='h',color_discrete_sequence= px.colors.qualitative.Dark24,
-              template = 'simple_white', title= 'Survival Count by Passenger Class and Gender')
+fig2 = px.bar(df,x = 'Survived',y = 'Pclass', orientation='h',color= 'Pclass',color_discrete_sequence= px.colors.qualitative.Dark24,
+              template = 'simple_white', title= 'Survival Count by Passenger Class')
 fig2.update_layout(title_x = 0.5, yaxis_title='')
 fig2.update_layout(showlegend = True)
 fig2.show()
 
 
+# In[9]:
+
+
+fig3 = px.bar(df,x = 'Survived',y = 'Pclass',color= 'Sex',barmode='group',orientation='h',color_discrete_sequence= px.colors.qualitative.Dark24,
+              template = 'simple_white', title= 'Survival Count by Passenger Class and Gender')
+fig3.update_layout(title_x = 0.5, yaxis_title='')
+fig3.update_layout(showlegend = True)
+fig3.show()
+
+
 # ### Check for Duplicate values
 
-# In[9]:
+# In[10]:
 
 
 df.duplicated().sum()
@@ -83,7 +93,7 @@ df.duplicated().sum()
 
 # ### Statistical Measurement
 
-# In[10]:
+# In[11]:
 
 
 df.describe(include= 'all')
@@ -93,7 +103,7 @@ df.describe(include= 'all')
 
 # #### For Age, the missing values are filled by the median value of the age per passenger class
 
-# In[11]:
+# In[12]:
 
 
 df['Age'] = df.groupby('Pclass')['Age'].transform(lambda x: x.fillna(x.median()))
@@ -101,15 +111,15 @@ df['Age'] = df.groupby('Pclass')['Age'].transform(lambda x: x.fillna(x.median())
 
 # #### For Embarked, the missing values are filled by mode value
 
-# In[12]:
+# In[13]:
 
 
 df['Embarked'].fillna(df['Embarked'].mode()[0], inplace=True)
 
 
-# ### Droping the unwanted columns and prepare the data to train the maodel
+# ### Droping the unwanted columns and prepare the data to train the model
 
-# In[13]:
+# In[14]:
 
 
 df.drop(['PassengerId','Name','Ticket','Cabin'],axis=1,inplace=True)
@@ -118,15 +128,23 @@ df
 
 # ### Converting the categorical columns into numerical to perform the Logistic Regression
 
-# In[14]:
+# In[15]:
 
 
-df = pd.get_dummies(df, columns=['Sex', 'Embarked'], drop_first=True)
+df = pd.get_dummies(df, columns =['Sex'], drop_first=True)
+df.head(2)
+
+
+# In[16]:
+
+
+df = pd.get_dummies(df, columns=['Embarked'])
+df.head(2)
 
 
 # ### Defining features and target
 
-# In[15]:
+# In[17]:
 
 
 X = df.drop('Survived', axis=1)
@@ -137,7 +155,7 @@ print(y)
 
 # ### Spliting the dataset into train and test data
 
-# In[16]:
+# In[18]:
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -145,7 +163,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 
 # ### Fitting the data into the Logistic Regression Model
 
-# In[17]:
+# In[19]:
 
 
 model = LogisticRegression(max_iter=1000)
@@ -154,7 +172,7 @@ model.fit(X_train, y_train)
 
 # ### Prediction of Survivals and Evaluating the Model
 
-# In[18]:
+# In[20]:
 
 
 y_pred = model.predict(X_test)
@@ -165,19 +183,19 @@ print("Confusion Matrix:\n", matrix)
 print("Report:\n",classification_report(y_test, y_pred))
 
 
-# In[19]:
+# In[21]:
 
 
 print(classification_report(y_test, y_pred))
 
 
-# In[20]:
+# In[22]:
 
 
 X.head(5)
 
 
-# In[21]:
+# In[23]:
 
 
 y.head(5)
@@ -185,29 +203,20 @@ y.head(5)
 
 # ## Testing the Model with some sample dataset
 
-# In[25]:
+# In[24]:
 
 
-X_Sample =pd.DataFrame([{'Pclass':1,'Age':25.0,'SibSp':0,'Parch':0,'Fare':71.2833,'Sex_male':True,'Embarked_Q':True,'Embarked_S':False},
-                          {'Pclass':3,'Age':32.0,'SibSp':1,'Parch':2,'Fare':26.00,'Sex_male':False,'Embarked_Q':False,'Embarked_S':False},
-                          {'Pclass':2,'Age':39.0,'SibSp':0,'Parch':0,'Fare':53.00,'Sex_male':False,'Embarked_Q':False,'Embarked_S':True}])
+X_Sample =pd.DataFrame([{'Pclass':1,'Age':25.0,'SibSp':0,'Parch':0,'Fare':71.2833,'Sex_male':True,'Embarked_C':False,'Embarked_Q':True,'Embarked_S':False},
+                          {'Pclass':3,'Age':32.0,'SibSp':1,'Parch':2,'Fare':26.00,'Sex_male':False,'Embarked_C':True,'Embarked_Q':False,'Embarked_S':False},
+                          {'Pclass':2,'Age':39.0,'SibSp':0,'Parch':0,'Fare':53.00,'Sex_male':False,'Embarked_C':False,'Embarked_Q':False,'Embarked_S':True}])
 X_Sample
 
 
-# In[26]:
+# In[25]:
 
 
 y1_Pred = model.predict(X_Sample)
 print('The predicted survivals for Sample_data:\n', y1_Pred)
-
-
-# In[27]:
-
-
-y1_True = [1,1,1]
-print("Accuracy:", accuracy_score(y1_True, y1_Pred))
-print("Confusion Matrix:\n", confusion_matrix(y1_True, y1_Pred))
-print("Report:\n", classification_report(y1_True, y1_Pred))
 
 
 # In[ ]:
